@@ -1,0 +1,39 @@
+---
+- name: Create a PVC from local VM image
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create a PVC annotated for upload
+      # This will be shorter with kubevirt_pvc
+      k8s:
+       state: present
+       namespace: default
+       name: debug-pvc
+       inline:
+         apiVersion: v1
+         kind: PersistentVolumeClaim
+         metadata:
+           name: debug-pvc
+           labels:
+             app: containerized-data-importer
+           annotations:
+             cdi.kubevirt.io/storage.upload.target: ""
+         spec:
+           accessModes:
+           - ReadWriteOnce
+           resources:
+             requests:
+               storage: 20Mi
+
+    - name: Wait for PVC to become ready 
+      # Won't be needed with kubevirt_pvc with wait support
+      k8s_facts:
+        namespace: default
+        name: debug-pvc
+        kind: PersistentVolumeClaim
+        api_version: v1
+      register: pvc
+      until: "pvc.resources[0].status.phase == 'Bound'"
+      delay: 10
+      retries: 30
+

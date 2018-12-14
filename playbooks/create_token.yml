@@ -1,0 +1,18 @@
+---
+- name: Create a PVC from local VM image
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create token
+      k8s:
+        api_version: upload.cdi.kubevirt.io/v1alpha1
+        kind: UploadTokenRequest
+        name: debug-pvc
+        namespace: default
+        inline:
+          metadata:
+            name: debug-pvc
+            namespace: default
+          spec:
+            pvcName: debug-pvc
+
